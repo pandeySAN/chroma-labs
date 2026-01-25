@@ -1,0 +1,40 @@
+name: clinic_partner_app
+description: A Flutter app for clinic partner doctor appointment system.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  provider: ^6.0.5
+  
+  # HTTP Client
+  http: ^1.1.0
+  
+  # Secure Storage for tokens
+  flutter_secure_storage: ^9.0.0
+  
+  # Google Sign In
+  google_sign_in: ^6.1.5
+  
+  # URL Launcher (for video calls)
+  url_launcher: ^6.2.1
+  
+  # Date/Time formatting
+  intl: ^0.18.1
+  
+  # Material Design icons
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
