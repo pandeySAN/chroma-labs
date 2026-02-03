@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/skeleton_loaders.dart';
 import 'login_screen.dart';
 import 'doctor_home_screen.dart';
 import 'doctor_registration_screen.dart';
+import 'splash_screen.dart';
 
 /// Signup screen for new user registration
 class SignupScreen extends StatefulWidget {
@@ -55,13 +58,26 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                _buildBackButton(),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 100),
+                  child: _buildBackButton(),
+                ),
                 const SizedBox(height: 20),
-                _buildHeader(),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 150),
+                  child: _buildHeader(),
+                ),
                 const SizedBox(height: 32),
-                _buildSignupForm(),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildSignupForm(),
+                ),
                 const SizedBox(height: 24),
-                _buildLoginLink(),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 500),
+                  child: _buildLoginLink(),
+                ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -118,7 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Join Clinic Partner today',
+          'Join CEREBRO – Clinic Partner today',
           style: TextStyle(
             fontSize: 16,
             color: Colors.white.withOpacity(0.9),
@@ -340,8 +356,9 @@ class _SignupScreenState extends State<SignupScreen> {
         ),
         TextButton(
           onPressed: () {
+            HapticFeedback.selectionClick();
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              FadeSlidePageRoute(page: const LoginScreen()),
             );
           },
           child: const Text(
@@ -381,15 +398,18 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _navigateBasedOnRole(AuthProvider authProvider) {
+    // Haptic feedback on successful signup
+    HapticFeedback.mediumImpact();
+    
     if (authProvider.isDoctor) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const DoctorHomeScreen()),
+        ScaleFadePageRoute(page: const DoctorHomeScreen()),
         (route) => false,
       );
     } else {
       // New users need to register as doctors
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const DoctorRegistrationScreen()),
+        ScaleFadePageRoute(page: const DoctorRegistrationScreen()),
         (route) => false,
       );
     }

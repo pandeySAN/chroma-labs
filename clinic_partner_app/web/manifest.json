@@ -1,11 +1,11 @@
 {
-    "name": "clinic_partner_app",
-    "short_name": "clinic_partner_app",
+    "name": "CEREBRO – Clinic Partner",
+    "short_name": "CEREBRO",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "CEREBRO – Clinic Partner - Doctor Appointment Management",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

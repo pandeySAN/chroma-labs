@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/appointment_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/appointment_provider.dart';
+import '../widgets/skeleton_loaders.dart';
 import 'login_screen.dart';
 
 /// Modern Doctor Home Screen - Appointments Dashboard
@@ -143,35 +145,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const CircularProgressIndicator(
-              color: Color(0xFF2196F3),
-              strokeWidth: 3,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Loading appointments...',
-            style: TextStyle(
-              fontSize: 16,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
+    // Use skeleton loaders for better perceived performance
+    return const AppointmentListSkeleton(itemCount: 4);
   }
 
   Widget _buildErrorState(String error) {
@@ -185,51 +160,63 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Icon(
-                    Icons.error_outline_rounded,
-                    size: 48,
-                    color: Colors.red.shade400,
+                FadeInContent(
+                  delay: const Duration(milliseconds: 100),
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: Colors.red.shade400,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Failed to load appointments',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 200),
+                  child: const Text(
+                    'Failed to load appointments',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  error,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                FadeInContent(
+                  delay: const Duration(milliseconds: 300),
+                  child: Text(
+                    error,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: _loadAppointments,
-                  icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 400),
+                  child: ElevatedButton.icon(
+                    onPressed: _loadAppointments,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2196F3),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -247,59 +234,74 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       child: SizedBox(
         height: MediaQuery.of(context).size.height - 200,
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 56,
-                  color: Color(0xFF2196F3),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'No appointments yet',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'New bookings will appear here.\nPull down to refresh.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey.shade500,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 32),
-              OutlinedButton.icon(
-                onPressed: _loadAppointments,
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Refresh'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF2196F3),
-                  side: const BorderSide(color: Color(0xFF2196F3)),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          child: FadeInContent(
+            duration: const Duration(milliseconds: 500),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FadeInContent(
+                  delay: const Duration(milliseconds: 100),
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2196F3).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 56,
+                      color: Color(0xFF2196F3),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 200),
+                  child: const Text(
+                    'No appointments yet',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 300),
+                  child: Text(
+                    'New bookings will appear here.\nPull down to refresh.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade500,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                FadeInContent(
+                  delay: const Duration(milliseconds: 400),
+                  child: OutlinedButton.icon(
+                    onPressed: _loadAppointments,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Refresh'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF2196F3),
+                      side: const BorderSide(color: Color(0xFF2196F3)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -319,34 +321,51 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       itemCount: sortedDates.length,
-      itemBuilder: (context, index) {
-        final dateKey = sortedDates[index];
+      itemBuilder: (context, dateIndex) {
+        final dateKey = sortedDates[dateIndex];
         final dateAppointments = grouped[dateKey]!;
         final date = DateTime.parse(dateKey);
         
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Date header
-            _buildDateHeader(date),
-            const SizedBox(height: 12),
-            // Appointments for this date
-            ...dateAppointments.map((appointment) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _AppointmentCard(
-                appointment: appointment,
-                onVideoCall: appointment.hasVideoCall
-                    ? () => _launchVideoCall(appointment.videoCallLink!)
-                    : null,
-                onStatusChange: (newStatus) async {
-                  await context.read<AppointmentProvider>()
-                      .updateAppointmentStatus(appointment.id, newStatus);
-                },
-              ),
-            )),
-            if (index < sortedDates.length - 1)
-              const SizedBox(height: 8),
-          ],
+        // Calculate stagger delay based on position
+        final baseDelay = Duration(milliseconds: dateIndex * 80);
+        
+        return FadeInContent(
+          delay: baseDelay,
+          duration: const Duration(milliseconds: 350),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Date header with fade-in
+              _buildDateHeader(date),
+              const SizedBox(height: 12),
+              // Appointments for this date with staggered fade-in
+              ...dateAppointments.asMap().entries.map((entry) {
+                final appointmentIndex = entry.key;
+                final appointment = entry.value;
+                
+                return FadeInContent(
+                  delay: baseDelay + Duration(milliseconds: 60 * (appointmentIndex + 1)),
+                  duration: const Duration(milliseconds: 400),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _AppointmentCard(
+                      appointment: appointment,
+                      onVideoCall: appointment.hasVideoCall
+                          ? () => _launchVideoCall(appointment.videoCallLink!)
+                          : null,
+                      onStatusChange: (newStatus) async {
+                        HapticFeedback.lightImpact();
+                        await context.read<AppointmentProvider>()
+                            .updateAppointmentStatus(appointment.id, newStatus);
+                      },
+                    ),
+                  ),
+                );
+              }),
+              if (dateIndex < sortedDates.length - 1)
+                const SizedBox(height: 8),
+            ],
+          ),
         );
       },
     );

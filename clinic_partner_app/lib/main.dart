@@ -7,6 +7,7 @@ import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/signup_screen.dart';
 import 'presentation/screens/doctor_home_screen.dart';
 import 'presentation/screens/doctor_registration_screen.dart';
+import 'presentation/screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,16 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  
+  // Set system UI overlay style for splash
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF0D47A1),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   
   runApp(
     MultiProvider(
@@ -36,6 +47,9 @@ class ClinicPartnerApp extends StatefulWidget {
 }
 
 class _ClinicPartnerAppState extends State<ClinicPartnerApp> {
+  bool _showSplash = true;
+  bool _splashAnimationComplete = false;
+
   @override
   void initState() {
     super.initState();
@@ -45,40 +59,103 @@ class _ClinicPartnerAppState extends State<ClinicPartnerApp> {
     });
   }
 
+  void _onSplashComplete() {
+    setState(() {
+      _splashAnimationComplete = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Clinic Partner',
+      title: 'CEREBRO – Clinic Partner',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/home': (context) => const DoctorHomeScreen(),
-        '/register-doctor': (context) => const DoctorRegistrationScreen(),
-      },
+      // Custom page transitions
+      onGenerateRoute: _generateRoute,
       home: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
-          // Show loading screen while initializing
-          if (!authProvider.isInitialized || authProvider.isLoading) {
-            return const _SplashScreen();
+          // Show animated splash during initialization
+          if (_showSplash && (!authProvider.isInitialized || !_splashAnimationComplete)) {
+            return AnimatedSplashScreen(
+              onAnimationComplete: _onSplashComplete,
+              showLoadingIndicator: !authProvider.isInitialized,
+            );
+          }
+
+          // Transition from splash to main content
+          if (_showSplash && authProvider.isInitialized && _splashAnimationComplete) {
+            // Small delay to ensure smooth transition
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted) {
+                setState(() {
+                  _showSplash = false;
+                });
+              }
+            });
+            
+            // Return splash with loading hidden during transition
+            return const AnimatedSplashScreen(showLoadingIndicator: false);
           }
           
-          // Navigate based on auth state
-          if (authProvider.isAuthenticated) {
-            // Check if user is a doctor
-            if (authProvider.isDoctor) {
-              return const DoctorHomeScreen();
-            } else {
-              // User is logged in but not a doctor - show registration
-              return const DoctorRegistrationScreen();
-            }
-          } else {
-            return const LoginScreen();
-          }
+          // Navigate based on auth state with animated transition
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.02),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: _buildMainContent(authProvider),
+          );
         },
       ),
     );
+  }
+
+  Widget _buildMainContent(AuthProvider authProvider) {
+    if (authProvider.isAuthenticated) {
+      if (authProvider.isDoctor) {
+        return const DoctorHomeScreen(key: ValueKey('doctor_home'));
+      } else {
+        return const DoctorRegistrationScreen(key: ValueKey('doctor_registration'));
+      }
+    } else {
+      return const LoginScreen(key: ValueKey('login'));
+    }
+  }
+
+  Route<dynamic>? _generateRoute(RouteSettings settings) {
+    Widget page;
+    
+    switch (settings.name) {
+      case '/login':
+        page = const LoginScreen();
+        break;
+      case '/signup':
+        page = const SignupScreen();
+        break;
+      case '/home':
+        page = const DoctorHomeScreen();
+        break;
+      case '/register-doctor':
+        page = const DoctorRegistrationScreen();
+        break;
+      default:
+        return null;
+    }
+
+    // Use custom fade-slide transition for all routes
+    return FadeSlidePageRoute(page: page);
   }
 
   ThemeData _buildTheme() {
@@ -189,91 +266,3 @@ class _ClinicPartnerAppState extends State<ClinicPartnerApp> {
   }
 }
 
-/// Splash screen shown during initialization
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF2196F3),
-              Color(0xFF1565C0),
-              Color(0xFF0D47A1),
-            ],
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 24,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.local_hospital_rounded,
-                size: 60,
-                color: Color(0xFF2196F3),
-              ),
-            ),
-            const SizedBox(height: 32),
-            // App name
-            const Text(
-              'Clinic Partner',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Doctor Appointment Management',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withOpacity(0.9),
-              ),
-            ),
-            const SizedBox(height: 48),
-            // Loading indicator
-            const SizedBox(
-              width: 40,
-              height: 40,
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                strokeWidth: 3,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Loading...',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/skeleton_loaders.dart';
 import 'signup_screen.dart';
 import 'doctor_home_screen.dart';
 import 'doctor_registration_screen.dart';
+import 'splash_screen.dart';
 
 /// Login screen with Google Sign-In and email/password login
 class LoginScreen extends StatefulWidget {
@@ -50,15 +53,33 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 40),
+                // Header with fade-in (logo and text already have Hero animations)
                 _buildHeader(),
                 const SizedBox(height: 40),
-                _buildGoogleButton(),
+                // Google button with staggered fade-in
+                FadeInContent(
+                  delay: const Duration(milliseconds: 200),
+                  child: _buildGoogleButton(),
+                ),
                 const SizedBox(height: 24),
-                _buildDivider(),
+                // Divider with staggered fade-in
+                FadeInContent(
+                  delay: const Duration(milliseconds: 300),
+                  child: _buildDivider(),
+                ),
                 const SizedBox(height: 24),
-                _buildLoginForm(),
+                // Login form with staggered fade-in
+                FadeInContent(
+                  delay: const Duration(milliseconds: 400),
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildLoginForm(),
+                ),
                 const SizedBox(height: 24),
-                _buildSignupLink(),
+                // Signup link with staggered fade-in
+                FadeInContent(
+                  delay: const Duration(milliseconds: 600),
+                  child: _buildSignupLink(),
+                ),
                 const SizedBox(height: 40),
               ],
             ),
@@ -71,41 +92,89 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader() {
     return Column(
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+        // Hero-wrapped logo for smooth transition from splash
+        Hero(
+          tag: 'app_logo',
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF2196F3).withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: ShaderMask(
+              shaderCallback: (bounds) {
+                return const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF2196F3),
+                    Color(0xFF1565C0),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Icon(
+                Icons.psychology_rounded,
+                size: 55,
+                color: Colors.white,
               ),
-            ],
-          ),
-          child: const Icon(
-            Icons.local_hospital_rounded,
-            size: 50,
-            color: Color(0xFF2196F3),
+            ),
           ),
         ),
         const SizedBox(height: 24),
+        // Hero-wrapped app name for smooth transition
+        Hero(
+          tag: 'app_name',
+          child: Material(
+            color: Colors.transparent,
+            child: const Text(
+              'CEREBRO',
+              style: TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: 3.0,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
         const Text(
           'Clinic Partner',
           style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
+            letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Doctor Appointment Management',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white.withOpacity(0.9),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            'Smart Healthcare Management',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+              color: Colors.white.withOpacity(0.95),
+              letterSpacing: 0.3,
+            ),
           ),
         ),
       ],
@@ -356,8 +425,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         TextButton(
           onPressed: () {
+            HapticFeedback.selectionClick();
             Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SignupScreen()),
+              FadeSlidePageRoute(page: const SignupScreen()),
             );
           },
           child: const Text(
@@ -407,13 +477,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _navigateBasedOnRole(AuthProvider authProvider) {
+    // Haptic feedback on successful login
+    HapticFeedback.mediumImpact();
+    
     if (authProvider.isDoctor) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DoctorHomeScreen()),
+        ScaleFadePageRoute(page: const DoctorHomeScreen()),
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DoctorRegistrationScreen()),
+        ScaleFadePageRoute(page: const DoctorRegistrationScreen()),
       );
     }
   }
