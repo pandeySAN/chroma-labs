@@ -78,9 +78,9 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2196F3),
-              Color(0xFF1565C0),
-              Color(0xFF0D47A1),
+              Color(0xFF153A4D),
+              Color(0xFF0F2A3D),
+              Color(0xFF0A2533),
             ],
           ),
         ),
@@ -111,7 +111,6 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
@@ -119,12 +118,21 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
+              BoxShadow(
+                color: const Color(0xFF00B8A9).withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
             ],
           ),
-          child: const Icon(
-            Icons.medical_services_rounded,
-            size: 50,
-            color: Color(0xFF2196F3),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: Image.asset(
+              'images/cerebro.jpg',
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -137,13 +145,23 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          'Register as a doctor to access appointments',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white.withOpacity(0.9),
+        ShaderMask(
+          shaderCallback: (bounds) {
+            return const LinearGradient(
+              colors: [
+                Color(0xFF00B8A9),
+                Color(0xFF6FCF4E),
+              ],
+            ).createShader(bounds);
+          },
+          child: Text(
+            'Register as a doctor to access appointments',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.9),
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -190,13 +208,13 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF2196F3).withOpacity(0.1),
+                color: const Color(0xFF00B8A9).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: const Color(0xFF2196F3),
+                    backgroundColor: const Color(0xFF00B8A9),
                     radius: 24,
                     child: Text(
                       authProvider.userInitials,
@@ -236,7 +254,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
             
             // Specialization dropdown
             DropdownButtonFormField<String>(
-              value: _selectedSpecialization,
+              initialValue: _selectedSpecialization,
               decoration: InputDecoration(
                 labelText: 'Specialization',
                 hintText: 'Select your specialization',
@@ -299,7 +317,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
               const Center(child: CircularProgressIndicator())
             else if (_clinics.isNotEmpty)
               DropdownButtonFormField<Clinic>(
-                value: _selectedClinic,
+                initialValue: _selectedClinic,
                 decoration: InputDecoration(
                   labelText: 'Clinic (Optional)',
                   hintText: 'Select your clinic',
@@ -330,7 +348,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
               child: ElevatedButton(
                 onPressed: _isRegistering ? null : _handleRegistration,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
+                  backgroundColor: const Color(0xFF00B8A9),
                   foregroundColor: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(

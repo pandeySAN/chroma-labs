@@ -41,9 +41,9 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2196F3),
-              Color(0xFF1565C0),
-              Color(0xFF0D47A1),
+              Color(0xFF153A4D),
+              Color(0xFF0F2A3D),
+              Color(0xFF0A2533),
             ],
           ),
         ),
@@ -96,84 +96,77 @@ class _LoginScreenState extends State<LoginScreen> {
         Hero(
           tag: 'app_logo',
           child: Container(
-            width: 100,
-            height: 100,
+            width: 120,
+            height: 120,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: const Color(0xFF2196F3).withOpacity(0.2),
-                  blurRadius: 15,
+                  color: const Color(0xFF00B8A9).withOpacity(0.3),
+                  blurRadius: 20,
                   offset: const Offset(0, 5),
                 ),
               ],
             ),
-            child: ShaderMask(
-              shaderCallback: (bounds) {
-                return const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF2196F3),
-                    Color(0xFF1565C0),
-                  ],
-                ).createShader(bounds);
-              },
-              child: const Icon(
-                Icons.psychology_rounded,
-                size: 55,
-                color: Colors.white,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: Image.asset(
+                'images/cerebro.jpg',
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        // Hero-wrapped app name for smooth transition
-        Hero(
-          tag: 'app_name',
-          child: Material(
-            color: Colors.transparent,
-            child: const Text(
-              'CEREBRO',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                letterSpacing: 3.0,
-              ),
+        const SizedBox(height: 20),
+        // Clinic Partner subtitle with gradient
+        ShaderMask(
+          shaderCallback: (bounds) {
+            return const LinearGradient(
+              colors: [
+                Color(0xFF00B8A9),
+                Color(0xFF6FCF4E),
+              ],
+            ).createShader(bounds);
+          },
+          child: const Text(
+            'Clinic Partner',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 2.0,
             ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Clinic Partner',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-            letterSpacing: 1.5,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF00B8A9).withOpacity(0.2),
+                const Color(0xFF6FCF4E).withOpacity(0.2),
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: const Color(0xFF00B8A9).withOpacity(0.3),
+            ),
           ),
           child: Text(
-            'Smart Healthcare Management',
+            'Mind Re-Wired',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w400,
               color: Colors.white.withOpacity(0.95),
-              letterSpacing: 0.3,
+              letterSpacing: 1.0,
             ),
           ),
         ),
@@ -363,10 +356,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Forgot Password?',
                   style: TextStyle(
-                    color: Colors.blue.shade700,
+                    color: Color(0xFF00B8A9),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -381,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleLogin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
+                  backgroundColor: const Color(0xFF00B8A9),
                   foregroundColor: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(

@@ -64,13 +64,13 @@ class AppointmentCard extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundColor: const Color(0xFF1A73E8).withOpacity(0.1),
+          backgroundColor: const Color(0xFF00B8A9).withOpacity(0.1),
           child: Text(
             appointment.patientInitials,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1A73E8),
+              color: Color(0xFF00B8A9),
             ),
           ),
         ),
@@ -146,8 +146,8 @@ class AppointmentCard extends StatelessWidget {
           icon: const Icon(Icons.video_call),
           label: const Text('Join Video Call'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF1A73E8),
-            side: const BorderSide(color: Color(0xFF1A73E8)),
+            foregroundColor: const Color(0xFF00B8A9),
+            side: const BorderSide(color: Color(0xFF00B8A9)),
           ),
         ),
       ),
@@ -163,7 +163,7 @@ class AppointmentCard extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onStart,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A73E8),
+              backgroundColor: const Color(0xFF00B8A9),
               foregroundColor: Colors.white,
             ),
             child: const Text('Start Appointment'),
@@ -178,7 +178,7 @@ class AppointmentCard extends StatelessWidget {
           child: ElevatedButton(
             onPressed: onComplete,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: const Color(0xFF6FCF4E),
               foregroundColor: Colors.white,
             ),
             child: const Text('Complete Appointment'),

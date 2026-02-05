@@ -62,7 +62,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
-        systemNavigationBarColor: Color(0xFF0D47A1),
+        systemNavigationBarColor: Color(0xFF0A2533),
         systemNavigationBarIconBrightness: Brightness.light,
       ),
     );
@@ -305,7 +305,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
   }
 
   LinearGradient _buildAnimatedGradient() {
-    // Subtle animated gradient shift
+    // Cerebro brand gradient - dark navy matching the logo
     final gradientValue = _gradientAnimation.value;
 
     return LinearGradient(
@@ -313,18 +313,18 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
       end: Alignment.bottomRight,
       colors: [
         Color.lerp(
-          const Color(0xFF1E88E5),
-          const Color(0xFF2196F3),
+          const Color(0xFF153A4D),
+          const Color(0xFF1A4A5D),
           gradientValue,
         )!,
         Color.lerp(
-          const Color(0xFF1565C0),
-          const Color(0xFF1976D2),
+          const Color(0xFF0F2A3D),
+          const Color(0xFF123542),
           gradientValue,
         )!,
         Color.lerp(
-          const Color(0xFF0D47A1),
-          const Color(0xFF1565C0),
+          const Color(0xFF0A2533),
+          const Color(0xFF0F2A3D),
           gradientValue,
         )!,
       ],
@@ -357,21 +357,27 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Outer glow pulse
+              // Outer glow pulse with teal/green gradient
               AnimatedBuilder(
                 animation: _pulseController,
                 builder: (context, child) {
                   return Container(
-                    width: 140 + (_pulseAnimation.value * 20),
-                    height: 140 + (_pulseAnimation.value * 20),
+                    width: 180 + (_pulseAnimation.value * 20),
+                    height: 180 + (_pulseAnimation.value * 20),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(40),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white
-                              .withOpacity(0.1 + (_pulseAnimation.value * 0.1)),
+                          color: const Color(0xFF00B8A9)
+                              .withOpacity(0.15 + (_pulseAnimation.value * 0.1)),
                           blurRadius: 30 + (_pulseAnimation.value * 20),
                           spreadRadius: 5 + (_pulseAnimation.value * 10),
+                        ),
+                        BoxShadow(
+                          color: const Color(0xFF6FCF4E)
+                              .withOpacity(0.1 + (_pulseAnimation.value * 0.05)),
+                          blurRadius: 40 + (_pulseAnimation.value * 15),
+                          spreadRadius: 2 + (_pulseAnimation.value * 5),
                         ),
                       ],
                     ),
@@ -379,48 +385,37 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                 },
               ),
 
-              // Main logo container
+              // Main logo container with actual image
               Hero(
                 tag: 'app_logo',
                 child: Container(
-                  width: 130,
-                  height: 130,
+                  width: 160,
+                  height: 160,
                   decoration: BoxDecoration(
-                    color: Colors.white,
                     borderRadius: BorderRadius.circular(36),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withOpacity(0.3),
                         blurRadius: 30,
                         offset: const Offset(0, 15),
                       ),
                       BoxShadow(
-                        color: const Color(0xFF2196F3).withOpacity(0.3),
-                        blurRadius: 20,
+                        color: const Color(0xFF00B8A9).withOpacity(0.3),
+                        blurRadius: 25,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
                   child: Stack(
                     children: [
-                      // Logo icon
-                      Center(
-                        child: ShaderMask(
-                          shaderCallback: (bounds) {
-                            return const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF2196F3),
-                                Color(0xFF1565C0),
-                              ],
-                            ).createShader(bounds);
-                          },
-                          child: const Icon(
-                            Icons.psychology_rounded,
-                            size: 70,
-                            color: Colors.white,
-                          ),
+                      // Cerebro logo image
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(36),
+                        child: Image.asset(
+                          'images/cerebro.jpg',
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.cover,
                         ),
                       ),
 
@@ -437,7 +432,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                                   end: Alignment.bottomRight,
                                   colors: [
                                     Colors.white.withOpacity(0),
-                                    Colors.white.withOpacity(0.3),
+                                    Colors.white.withOpacity(0.2),
                                     Colors.white.withOpacity(0),
                                   ],
                                   stops: [
@@ -472,53 +467,28 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // CEREBRO
-        SlideTransition(
-          position: _cerebroSlide,
-          child: FadeTransition(
-            opacity: _cerebroOpacity,
-            child: Hero(
-              tag: 'app_name',
-              child: Material(
-                color: Colors.transparent,
-                child: ShaderMask(
-                  shaderCallback: (bounds) {
-                    return LinearGradient(
-                      colors: [
-                        Colors.white,
-                        Colors.white.withOpacity(0.9),
-                      ],
-                    ).createShader(bounds);
-                  },
-                  child: const Text(
-                    'CEREBRO',
-                    style: TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 4.0,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Clinic Partner
+        // Clinic Partner subtitle with gradient
         SlideTransition(
           position: _partnerSlide,
           child: FadeTransition(
             opacity: _partnerOpacity,
-            child: const Text(
-              'Clinic Partner',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-                letterSpacing: 2.0,
+            child: ShaderMask(
+              shaderCallback: (bounds) {
+                return const LinearGradient(
+                  colors: [
+                    Color(0xFF00B8A9),
+                    Color(0xFF6FCF4E),
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Text(
+                'Clinic Partner',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: 3.0,
+                ),
               ),
             ),
           ),
@@ -532,20 +502,25 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF00B8A9).withOpacity(0.2),
+                  const Color(0xFF6FCF4E).withOpacity(0.2),
+                ],
+              ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: const Color(0xFF00B8A9).withOpacity(0.3),
                 width: 1,
               ),
             ),
             child: const Text(
-              'Smart Healthcare Management',
+              'Mind Re-Wired',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: Colors.white,
-                letterSpacing: 0.5,
+                letterSpacing: 1.5,
               ),
             ),
           ),

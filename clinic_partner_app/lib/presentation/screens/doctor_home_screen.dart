@@ -37,7 +37,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       appBar: _buildAppBar(context),
       body: RefreshIndicator(
         onRefresh: () => context.read<AppointmentProvider>().refreshAppointments(),
-        color: const Color(0xFF2196F3),
+        color: const Color(0xFF00B8A9),
         backgroundColor: Colors.white,
         child: _buildBody(context),
       ),
@@ -48,35 +48,59 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     final authProvider = context.watch<AuthProvider>();
     
     return AppBar(
-      backgroundColor: const Color(0xFF2196F3),
+      backgroundColor: const Color(0xFF0F2A3D),
       foregroundColor: Colors.white,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.calendar_today_rounded, size: 24),
-          ),
-          const SizedBox(width: 12),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      title: Consumer<AppointmentProvider>(
+        builder: (context, provider, _) {
+          return Row(
             children: [
-              Text(
-                'My Appointments',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.3,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00B8A9), Color(0xFF6FCF4E)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: const Icon(Icons.calendar_today_rounded, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'My Appointments',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  if (provider.isDemoMode)
+                    Container(
+                      margin: const EdgeInsets.only(top: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6FCF4E),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'DEMO',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
       actions: [
         // Doctor name badge
@@ -101,12 +125,56 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ),
           ),
         const SizedBox(width: 8),
+        // Demo mode button
+        Consumer<AppointmentProvider>(
+          builder: (context, provider, _) {
+            return IconButton(
+              icon: Icon(
+                provider.isDemoMode ? Icons.science : Icons.science_outlined,
+                color: provider.isDemoMode ? const Color(0xFF6FCF4E) : Colors.white,
+              ),
+              tooltip: provider.isDemoMode ? 'Exit Demo Mode' : 'Load Demo Data',
+              onPressed: () {
+                provider.toggleDemoMode();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          provider.isDemoMode ? Icons.science_outlined : Icons.science,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          provider.isDemoMode 
+                              ? 'Demo mode disabled' 
+                              : 'Demo mode enabled - showing sample appointments',
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF00B8A9),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            );
+          },
+        ),
         // Refresh button
         IconButton(
           icon: const Icon(Icons.refresh_rounded),
           tooltip: 'Refresh',
           onPressed: () {
-            context.read<AppointmentProvider>().fetchAppointments();
+            final provider = context.read<AppointmentProvider>();
+            if (provider.isDemoMode) {
+              provider.loadDemoAppointments();
+            } else {
+              provider.fetchAppointments();
+            }
           },
         ),
         // Logout button
@@ -177,9 +245,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                FadeInContent(
-                  delay: const Duration(milliseconds: 200),
-                  child: const Text(
+                const FadeInContent(
+                  delay: Duration(milliseconds: 200),
+                  child: Text(
                     'Failed to load appointments',
                     style: TextStyle(
                       fontSize: 20,
@@ -208,7 +276,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
+                      backgroundColor: const Color(0xFF00B8A9),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
@@ -245,20 +313,20 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2196F3).withOpacity(0.1),
+                      color: const Color(0xFF00B8A9).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: const Icon(
                       Icons.calendar_today_outlined,
                       size: 56,
-                      color: Color(0xFF2196F3),
+                      color: Color(0xFF00B8A9),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                FadeInContent(
-                  delay: const Duration(milliseconds: 200),
-                  child: const Text(
+                const FadeInContent(
+                  delay: Duration(milliseconds: 200),
+                  child: Text(
                     'No appointments yet',
                     style: TextStyle(
                       fontSize: 22,
@@ -288,8 +356,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Refresh'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF2196F3),
-                      side: const BorderSide(color: Color(0xFF2196F3)),
+                      foregroundColor: const Color(0xFF00B8A9),
+                      side: const BorderSide(color: Color(0xFF00B8A9)),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 32,
                         vertical: 14,
@@ -381,7 +449,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     
     if (appointmentDate == today) {
       label = 'Today';
-      labelColor = const Color(0xFF2196F3);
+      labelColor = const Color(0xFF00B8A9);
     } else if (appointmentDate == today.add(const Duration(days: 1))) {
       label = 'Tomorrow';
       labelColor = const Color(0xFF10B981);
@@ -607,13 +675,13 @@ class _AppointmentCard extends StatelessWidget {
                 _buildInfoChip(
                   icon: Icons.calendar_today_outlined,
                   label: _formatDate(appointment.date),
-                  color: const Color(0xFF2196F3),
+                  color: const Color(0xFF00B8A9),
                 ),
                 const SizedBox(width: 16),
                 _buildInfoChip(
                   icon: Icons.access_time_rounded,
                   label: appointment.formattedTime,
-                  color: const Color(0xFF10B981),
+                  color: const Color(0xFF6FCF4E),
                 ),
               ],
             ),
@@ -678,7 +746,7 @@ class _AppointmentCard extends StatelessWidget {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
+                    backgroundColor: const Color(0xFF00B8A9),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -704,14 +772,14 @@ class _AppointmentCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF2196F3),
-            Color(0xFF1565C0),
+            Color(0xFF00B8A9),
+            Color(0xFF6FCF4E),
           ],
         ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2196F3).withOpacity(0.3),
+            color: const Color(0xFF00B8A9).withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

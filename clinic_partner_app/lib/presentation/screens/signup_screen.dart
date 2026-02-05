@@ -46,9 +46,9 @@ class _SignupScreenState extends State<SignupScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2196F3),
-              Color(0xFF1565C0),
-              Color(0xFF0D47A1),
+              Color(0xFF153A4D),
+              Color(0xFF0F2A3D),
+              Color(0xFF0A2533),
             ],
           ),
         ),
@@ -107,7 +107,6 @@ class _SignupScreenState extends State<SignupScreen> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
@@ -115,12 +114,21 @@ class _SignupScreenState extends State<SignupScreen> {
                 blurRadius: 15,
                 offset: const Offset(0, 8),
               ),
+              BoxShadow(
+                color: const Color(0xFF00B8A9).withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 4),
+              ),
             ],
           ),
-          child: const Icon(
-            Icons.person_add_rounded,
-            size: 40,
-            color: Color(0xFF2196F3),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset(
+              'images/cerebro.jpg',
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         const SizedBox(height: 20),
@@ -133,11 +141,21 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          'Join CEREBRO – Clinic Partner today',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.white.withOpacity(0.9),
+        ShaderMask(
+          shaderCallback: (bounds) {
+            return const LinearGradient(
+              colors: [
+                Color(0xFF00B8A9),
+                Color(0xFF6FCF4E),
+              ],
+            ).createShader(bounds);
+          },
+          child: Text(
+            'Join CEREBRO – Clinic Partner today',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.9),
+            ),
           ),
         ),
       ],
@@ -312,7 +330,7 @@ class _SignupScreenState extends State<SignupScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleSignup,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
+                  backgroundColor: const Color(0xFF00B8A9),
                   foregroundColor: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(

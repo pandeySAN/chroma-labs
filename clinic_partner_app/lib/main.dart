@@ -23,7 +23,7 @@ void main() {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0D47A1),
+      systemNavigationBarColor: Color(0xFF0A2533),
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
@@ -159,7 +159,10 @@ class _ClinicPartnerAppState extends State<ClinicPartnerApp> {
   }
 
   ThemeData _buildTheme() {
-    const primaryColor = Color(0xFF2196F3);
+    // Cerebro brand colors - teal/cyan gradient matching the logo
+    const primaryColor = Color(0xFF00B8A9); // Teal/Cyan from logo
+    const secondaryColor = Color(0xFF6FCF4E); // Green from logo
+    const darkNavy = Color(0xFF0F2A3D); // Dark navy background
     
     return ThemeData(
       useMaterial3: true,
@@ -167,12 +170,14 @@ class _ClinicPartnerAppState extends State<ClinicPartnerApp> {
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         primary: primaryColor,
-        secondary: const Color(0xFF42A5F5),
+        secondary: secondaryColor,
+        surface: Colors.white,
+        background: const Color(0xFFF8FAFC),
       ),
       
       // AppBar theme
       appBarTheme: AppBarTheme(
-        backgroundColor: primaryColor,
+        backgroundColor: darkNavy,
         foregroundColor: Colors.white,
         elevation: 0,
         shadowColor: Colors.black.withOpacity(0.1),
