@@ -52,55 +52,28 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       foregroundColor: Colors.white,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: Consumer<AppointmentProvider>(
-        builder: (context, provider, _) {
-          return Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00B8A9), Color(0xFF6FCF4E)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.calendar_today_rounded, size: 24),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00B8A9), Color(0xFF6FCF4E)],
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'My Appointments',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                  if (provider.isDemoMode)
-                    Container(
-                      margin: const EdgeInsets.only(top: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6FCF4E),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'DEMO',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          );
-        },
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.calendar_today_rounded, size: 24),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'My Appointments',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
       actions: [
         // Doctor name badge
@@ -125,56 +98,12 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ),
           ),
         const SizedBox(width: 8),
-        // Demo mode button
-        Consumer<AppointmentProvider>(
-          builder: (context, provider, _) {
-            return IconButton(
-              icon: Icon(
-                provider.isDemoMode ? Icons.science : Icons.science_outlined,
-                color: provider.isDemoMode ? const Color(0xFF6FCF4E) : Colors.white,
-              ),
-              tooltip: provider.isDemoMode ? 'Exit Demo Mode' : 'Load Demo Data',
-              onPressed: () {
-                provider.toggleDemoMode();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        Icon(
-                          provider.isDemoMode ? Icons.science_outlined : Icons.science,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          provider.isDemoMode 
-                              ? 'Demo mode disabled' 
-                              : 'Demo mode enabled - showing sample appointments',
-                        ),
-                      ],
-                    ),
-                    backgroundColor: const Color(0xFF00B8A9),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-            );
-          },
-        ),
         // Refresh button
         IconButton(
           icon: const Icon(Icons.refresh_rounded),
           tooltip: 'Refresh',
           onPressed: () {
-            final provider = context.read<AppointmentProvider>();
-            if (provider.isDemoMode) {
-              provider.loadDemoAppointments();
-            } else {
-              provider.fetchAppointments();
-            }
+            context.read<AppointmentProvider>().fetchAppointments();
           },
         ),
         // Logout button

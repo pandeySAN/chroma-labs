@@ -14,6 +14,16 @@ class AppointmentService {
   // Helper Methods
   // =========================================
 
+  /// Check if response is valid JSON
+  bool _isJsonResponse(http.Response response) {
+    final contentType = response.headers['content-type'];
+    if (contentType != null && contentType.contains('application/json')) {
+      return true;
+    }
+    final body = response.body.trim();
+    return body.startsWith('{') || body.startsWith('[');
+  }
+
   /// Get authorization headers with bearer token
   Future<Map<String, String>> _getAuthHeaders() async {
     final accessToken = await _storage.read(key: ApiConstants.accessTokenKey);
@@ -66,7 +76,7 @@ class AppointmentService {
         endpoint += '?${queryParams.join('&')}';
       }
 
-      final Uri url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final url = Uri.parse(ApiConstants.endpoint(endpoint));
       final headers = await _getAuthHeaders();
 
       // Make request
@@ -89,28 +99,37 @@ class AppointmentService {
         }
       }
 
+      // Check if response is valid JSON
+      if (!_isJsonResponse(response)) {
+        return ServiceResult.failure('Server error. Please try again later.');
+      }
+
       // Parse response
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(response.body);
-        
-        final List<Appointment> appointments = jsonList
-            .map((json) => Appointment.fromJson(json as Map<String, dynamic>))
-            .toList();
-        
-        // Sort by date and time
-        appointments.sort((a, b) {
-          final dateCompare = a.date.compareTo(b.date);
-          if (dateCompare != 0) return dateCompare;
-          return a.time.compareTo(b.time);
-        });
-        
-        return ServiceResult.success(appointments);
+        try {
+          final List<dynamic> jsonList = jsonDecode(response.body);
+          
+          final List<Appointment> appointments = jsonList
+              .map((json) => Appointment.fromJson(json as Map<String, dynamic>))
+              .toList();
+          
+          // Sort by date and time
+          appointments.sort((a, b) {
+            final dateCompare = a.date.compareTo(b.date);
+            if (dateCompare != 0) return dateCompare;
+            return a.time.compareTo(b.time);
+          });
+          
+          return ServiceResult.success(appointments);
+        } catch (e) {
+          return ServiceResult.failure('Invalid data format');
+        }
       } else {
         // Parse error message
         try {
           final error = jsonDecode(response.body);
           return ServiceResult.failure(
-            error['error'] ?? 'Failed to load appointments',
+            error['error'] ?? 'Failed to load appointments (${response.statusCode})',
           );
         } catch (e) {
           return ServiceResult.failure(
@@ -129,8 +148,8 @@ class AppointmentService {
   /// GET /api/appointments/{id}/
   Future<ServiceResult<Appointment>> getAppointment(int id) async {
     try {
-      final Uri url = Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.appointmentDetail(id)}',
+      final url = Uri.parse(
+        ApiConstants.endpoint(ApiConstants.appointmentDetail(id)),
       );
       final headers = await _getAuthHeaders();
 
@@ -153,9 +172,18 @@ class AppointmentService {
         }
       }
 
+      // Check if response is valid JSON
+      if (!_isJsonResponse(response)) {
+        return ServiceResult.failure('Server error. Please try again later.');
+      }
+
       if (response.statusCode == 200) {
-        final Map<String, dynamic> json = jsonDecode(response.body);
-        return ServiceResult.success(Appointment.fromJson(json));
+        try {
+          final Map<String, dynamic> json = jsonDecode(response.body);
+          return ServiceResult.success(Appointment.fromJson(json));
+        } catch (e) {
+          return ServiceResult.failure('Invalid data format');
+        }
       } else if (response.statusCode == 404) {
         return ServiceResult.failure('Appointment not found');
       } else {
@@ -200,8 +228,8 @@ class AppointmentService {
     Map<String, dynamic> data,
   ) async {
     try {
-      final Uri url = Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.appointmentDetail(id)}',
+      final url = Uri.parse(
+        ApiConstants.endpoint(ApiConstants.appointmentDetail(id)),
       );
       final headers = await _getAuthHeaders();
 
@@ -229,9 +257,18 @@ class AppointmentService {
         }
       }
 
+      // Check if response is valid JSON
+      if (!_isJsonResponse(response)) {
+        return ServiceResult.failure('Server error. Please try again later.');
+      }
+
       if (response.statusCode == 200) {
-        final Map<String, dynamic> json = jsonDecode(response.body);
-        return ServiceResult.success(Appointment.fromJson(json));
+        try {
+          final Map<String, dynamic> json = jsonDecode(response.body);
+          return ServiceResult.success(Appointment.fromJson(json));
+        } catch (e) {
+          return ServiceResult.failure('Invalid data format');
+        }
       } else if (response.statusCode == 404) {
         return ServiceResult.failure('Appointment not found');
       } else {
