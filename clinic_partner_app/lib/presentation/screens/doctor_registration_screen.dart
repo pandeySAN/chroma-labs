@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/doctor_model.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/app_logo.dart';
 import 'doctor_home_screen.dart';
 
 /// Screen for registering a user as a doctor
@@ -125,15 +126,7 @@ class _DoctorRegistrationScreenState extends State<DoctorRegistrationScreen> {
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: Image.asset(
-              'images/cerebro.jpg',
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-            ),
-          ),
+          child: const AppLogo(size: 100, borderRadius: 28),
         ),
         const SizedBox(height: 24),
         const Text(

@@ -7,6 +7,9 @@ from .views import (
     CurrentUserView,
     RegisterDoctorView,
     ListClinicsView,
+    ForgotPasswordView,
+    VerifyOTPView,
+    ResetPasswordView,
 )
 
 app_name = 'accounts'
@@ -28,4 +31,9 @@ urlpatterns = [
     # Doctor registration
     path('register-doctor/', RegisterDoctorView.as_view(), name='register_doctor'),
     path('clinics/', ListClinicsView.as_view(), name='list_clinics'),
+    
+    # Password reset
+    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('verify-otp/', VerifyOTPView.as_view(), name='verify_otp'),
+    path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
 ]

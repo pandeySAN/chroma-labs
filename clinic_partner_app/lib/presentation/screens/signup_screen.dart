@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/skeleton_loaders.dart';
 import 'login_screen.dart';
 import 'doctor_home_screen.dart';
@@ -121,15 +122,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Image.asset(
-              'images/cerebro.jpg',
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
-          ),
+          child: const AppLogo(size: 80, borderRadius: 24),
         ),
         const SizedBox(height: 20),
         const Text(

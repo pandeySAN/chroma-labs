@@ -11,11 +11,15 @@ from google.auth.transport import requests as google_requests
 
 from .models import Doctor
 from appointments.models import Clinic
+from .models import PasswordResetOTP
 from .serializers import (
     UserSerializer, 
     DoctorSerializer,
     SignupSerializer,
     LoginSerializer,
+    ForgotPasswordSerializer,
+    VerifyOTPSerializer,
+    ResetPasswordSerializer,
 )
 
 User = get_user_model()
@@ -104,7 +108,7 @@ class GoogleOAuthView(APIView):
     """
     POST /api/auth/google/
     
-    Accepts a Google ID token, verifies it with google-auth,
+    Accepts a Google ID token or access token, verifies it,
     creates or gets the user, and returns JWT tokens.
     """
     
@@ -112,6 +116,7 @@ class GoogleOAuthView(APIView):
     
     def post(self, request):
         token = request.data.get('token')
+        token_type = request.data.get('token_type', 'id_token')
         
         if not token:
             return Response(
@@ -120,26 +125,22 @@ class GoogleOAuthView(APIView):
             )
         
         try:
-            # Verify the Google token
-            idinfo = id_token.verify_oauth2_token(
-                token,
-                google_requests.Request(),
-                settings.GOOGLE_OAUTH2_CLIENT_ID,
-            )
+            if token_type == 'access_token':
+                userinfo = self._verify_access_token(token)
+            else:
+                userinfo = self._verify_id_token(token)
             
-            # Extract user info from token
-            email = idinfo.get('email')
+            email = userinfo.get('email')
             if not email:
                 return Response(
                     {'error': 'Email not provided by Google'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             
-            first_name = idinfo.get('given_name', '')
-            last_name = idinfo.get('family_name', '')
-            profile_picture = idinfo.get('picture', '')
+            first_name = userinfo.get('given_name', '')
+            last_name = userinfo.get('family_name', '')
+            profile_picture = userinfo.get('picture', '')
             
-            # Get or create user
             user, created = User.objects.get_or_create(
                 email=email,
                 defaults={
@@ -151,7 +152,6 @@ class GoogleOAuthView(APIView):
                 }
             )
             
-            # Update profile info if user already exists
             if not created:
                 updated = False
                 if first_name and user.first_name != first_name:
@@ -166,10 +166,8 @@ class GoogleOAuthView(APIView):
                 if updated:
                     user.save()
             
-            # Generate JWT tokens
             refresh = RefreshToken.for_user(user)
             
-            # Check if user is a doctor
             is_doctor = Doctor.objects.filter(user=user).exists()
             doctor_data = None
             if is_doctor:
@@ -197,6 +195,28 @@ class GoogleOAuthView(APIView):
                 {'error': 'Authentication failed', 'detail': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+    
+    @staticmethod
+    def _verify_id_token(token):
+        """Verify a Google ID token (JWT) and return user info."""
+        return id_token.verify_oauth2_token(
+            token,
+            google_requests.Request(),
+            settings.GOOGLE_OAUTH2_CLIENT_ID,
+        )
+    
+    @staticmethod
+    def _verify_access_token(token):
+        """Verify a Google access token by calling Google's userinfo API."""
+        import requests
+        resp = requests.get(
+            'https://www.googleapis.com/oauth2/v3/userinfo',
+            headers={'Authorization': f'Bearer {token}'},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            raise ValueError('Invalid access token')
+        return resp.json()
 
 
 class CurrentUserView(APIView):
@@ -305,3 +325,112 @@ class ListClinicsView(APIView):
         clinics = Clinic.objects.all().order_by('name')
         serializer = ClinicSerializer(clinics, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ForgotPasswordView(APIView):
+    """
+    POST /api/auth/forgot-password/
+    
+    Sends a 6-digit OTP to the user's email for password reset.
+    """
+    
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            user = serializer.context['user']
+            
+            otp_obj = PasswordResetOTP.create_for_user(user)
+            
+            try:
+                from django.core.mail import send_mail
+                send_mail(
+                    subject='CEREBRO - Password Reset OTP',
+                    message=(
+                        f'Hello {user.full_name},\n\n'
+                        f'Your OTP for password reset is: {otp_obj.otp}\n\n'
+                        f'This code is valid for 10 minutes.\n'
+                        f'If you did not request this, please ignore this email.\n\n'
+                        f'- CEREBRO Clinic Partner'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                )
+            except Exception:
+                pass
+            
+            masked_email = self._mask_email(user.email)
+            
+            return Response({
+                'message': f'OTP sent to {masked_email}',
+                'email': masked_email,
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @staticmethod
+    def _mask_email(email):
+        parts = email.split('@')
+        if len(parts) != 2:
+            return email
+        local = parts[0]
+        if len(local) <= 2:
+            masked = local[0] + '*' * (len(local) - 1)
+        else:
+            masked = local[0] + '*' * (len(local) - 2) + local[-1]
+        return f'{masked}@{parts[1]}'
+
+
+class VerifyOTPView(APIView):
+    """
+    POST /api/auth/verify-otp/
+    
+    Verifies the OTP code. Returns a success response if valid.
+    """
+    
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = VerifyOTPSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            return Response({
+                'message': 'OTP verified successfully',
+                'verified': True,
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordView(APIView):
+    """
+    POST /api/auth/reset-password/
+    
+    Resets the user's password after OTP verification.
+    Expects identifier, otp, and new_password.
+    """
+    
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            new_password = serializer.validated_data['new_password']
+            
+            user.set_password(new_password)
+            user.save()
+            
+            PasswordResetOTP.objects.filter(
+                user=user, is_used=False
+            ).update(is_used=True)
+            
+            return Response({
+                'message': 'Password reset successfully',
+            }, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

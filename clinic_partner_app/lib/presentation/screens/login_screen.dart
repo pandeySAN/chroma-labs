@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/skeleton_loaders.dart';
 import 'signup_screen.dart';
 import 'doctor_home_screen.dart';
 import 'doctor_registration_screen.dart';
+import 'forgot_password_screen.dart';
 import 'splash_screen.dart';
 
 /// Login screen with Google Sign-In and email/password login
@@ -113,15 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: Image.asset(
-                'images/cerebro.jpg',
-                width: 120,
-                height: 120,
-                fit: BoxFit.cover,
-              ),
-            ),
+            child: const AppLogo(size: 120, borderRadius: 30),
           ),
         ),
         const SizedBox(height: 20),
@@ -350,10 +344,8 @@ class _LoginScreenState extends State<LoginScreen> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Forgot password feature coming soon'),
-                    ),
+                  Navigator.of(context).push(
+                    FadeSlidePageRoute(page: const ForgotPasswordScreen()),
                   );
                 },
                 child: const Text(

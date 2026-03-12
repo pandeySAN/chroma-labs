@@ -44,6 +44,9 @@ class ApiConstants {
   static const String authTokenRefresh = '/api/auth/token/refresh/';
   static const String registerDoctor = '/api/auth/register-doctor/';
   static const String listClinics = '/api/auth/clinics/';
+  static const String forgotPassword = '/api/auth/forgot-password/';
+  static const String verifyOtp = '/api/auth/verify-otp/';
+  static const String resetPassword = '/api/auth/reset-password/';
 
   // ===========================================
   // Appointment Endpoints

@@ -12,7 +12,7 @@ class AppConfig {
   /// 
   /// IMPORTANT: Replace this with your actual Client ID
   static const String googleWebClientId = 
-      'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+      '230465261403-vqlfklqd8onjds2h5cucvphe9plmj92j.apps.googleusercontent.com';
   
   /// Google OAuth Android Client ID (optional, usually auto-detected)
   static const String? googleAndroidClientId = null;

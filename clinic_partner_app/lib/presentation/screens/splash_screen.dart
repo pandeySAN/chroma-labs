@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../widgets/app_logo.dart';
 
 /// Premium animated splash screen with modern micro-interactions
 /// Inspired by Zomato/Swiggy app opening experience
@@ -409,15 +410,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                   child: Stack(
                     children: [
                       // Cerebro logo image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(36),
-                        child: Image.asset(
-                          'images/cerebro.jpg',
-                          width: 160,
-                          height: 160,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                      const AppLogo(size: 160, borderRadius: 36),
 
                       // Shimmer overlay
                       AnimatedBuilder(

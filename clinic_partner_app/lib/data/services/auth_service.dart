@@ -15,8 +15,9 @@ class AuthService {
 
   AuthService() {
     _googleSignIn = GoogleSignIn(
-      scopes: ['email', 'profile'],
+      scopes: ['email', 'profile', 'openid'],
       clientId: kIsWeb ? AppConfig.googleWebClientId : null,
+      serverClientId: AppConfig.googleWebClientId,
     );
   }
 
@@ -327,12 +328,22 @@ class AuthService {
 
       final googleAuth = await googleUser.authentication;
       final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
 
-      if (idToken == null) {
+      if (idToken == null && accessToken == null) {
         return AuthResult.failure('Failed to get Google token');
       }
 
       final url = Uri.parse(ApiConstants.endpoint(ApiConstants.authGoogle));
+
+      final body = <String, dynamic>{};
+      if (idToken != null) {
+        body['token'] = idToken;
+        body['token_type'] = 'id_token';
+      } else {
+        body['token'] = accessToken;
+        body['token_type'] = 'access_token';
+      }
 
       final response = await http.post(
         url,
@@ -340,7 +351,7 @@ class AuthService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode({'token': idToken}),
+        body: jsonEncode(body),
       ).timeout(ApiConstants.connectionTimeout);
 
       if (!_isJsonResponse(response)) {
@@ -520,6 +531,139 @@ class AuthService {
     } catch (_) {
       return false;
     }
+  }
+
+  // ============================
+  // FORGOT PASSWORD
+  // ============================
+
+  Future<Map<String, dynamic>> forgotPassword(String identifier) async {
+    try {
+      final url = Uri.parse(ApiConstants.endpoint(ApiConstants.forgotPassword));
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'identifier': identifier}),
+      ).timeout(ApiConstants.connectionTimeout);
+
+      if (!_isJsonResponse(response)) {
+        return {'success': false, 'error': 'Server error. Please try again.'};
+      }
+
+      final data = _safeJsonDecode(response.body);
+
+      if (response.statusCode == 200 && data != null) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'OTP sent',
+          'email': data['email'] ?? '',
+        };
+      }
+
+      final errorMsg = _extractError(data);
+      return {'success': false, 'error': errorMsg ?? 'Failed to send OTP'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: $e'};
+    }
+  }
+
+  // ============================
+  // VERIFY OTP
+  // ============================
+
+  Future<Map<String, dynamic>> verifyOtp({
+    required String identifier,
+    required String otp,
+  }) async {
+    try {
+      final url = Uri.parse(ApiConstants.endpoint(ApiConstants.verifyOtp));
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'identifier': identifier, 'otp': otp}),
+      ).timeout(ApiConstants.connectionTimeout);
+
+      if (!_isJsonResponse(response)) {
+        return {'success': false, 'error': 'Server error. Please try again.'};
+      }
+
+      final data = _safeJsonDecode(response.body);
+
+      if (response.statusCode == 200 && data != null) {
+        return {'success': true, 'message': data['message'] ?? 'OTP verified'};
+      }
+
+      final errorMsg = _extractError(data);
+      return {'success': false, 'error': errorMsg ?? 'Invalid OTP'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: $e'};
+    }
+  }
+
+  // ============================
+  // RESET PASSWORD
+  // ============================
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String identifier,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      final url = Uri.parse(ApiConstants.endpoint(ApiConstants.resetPassword));
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'identifier': identifier,
+          'otp': otp,
+          'new_password': newPassword,
+        }),
+      ).timeout(ApiConstants.connectionTimeout);
+
+      if (!_isJsonResponse(response)) {
+        return {'success': false, 'error': 'Server error. Please try again.'};
+      }
+
+      final data = _safeJsonDecode(response.body);
+
+      if (response.statusCode == 200 && data != null) {
+        return {'success': true, 'message': data['message'] ?? 'Password reset'};
+      }
+
+      final errorMsg = _extractError(data);
+      return {'success': false, 'error': errorMsg ?? 'Failed to reset password'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error: $e'};
+    }
+  }
+
+  String? _extractError(Map<String, dynamic>? data) {
+    if (data == null) return null;
+
+    if (data.containsKey('detail')) return data['detail'].toString();
+
+    for (final key in ['identifier', 'otp', 'new_password', 'error', 'non_field_errors']) {
+      if (data.containsKey(key)) {
+        final val = data[key];
+        if (val is List && val.isNotEmpty) return val.first.toString();
+        if (val is String) return val;
+      }
+    }
+
+    return null;
   }
 
   // ============================

@@ -1,5 +1,10 @@
+import random
+import string
+from datetime import timedelta
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -69,3 +74,56 @@ class Doctor(models.Model):
     
     def __str__(self):
         return f"Dr. {self.user.full_name} - {self.specialization}"
+
+
+class PasswordResetOTP(models.Model):
+    """
+    Stores a 6-digit OTP for password reset.
+    Expires after 10 minutes. Max 5 attempts per OTP.
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='password_reset_otps',
+    )
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = _('password reset OTP')
+        verbose_name_plural = _('password reset OTPs')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"OTP for {self.user.email} - {'Used' if self.is_used else 'Active'}"
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    @property
+    def is_valid(self):
+        return not self.is_used and not self.is_expired and self.attempts < 5
+
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def generate_otp(cls):
+        return ''.join(random.choices(string.digits, k=6))
+
+    @classmethod
+    def create_for_user(cls, user):
+        cls.objects.filter(user=user, is_used=False).update(is_used=True)
+        otp_code = cls.generate_otp()
+        return cls.objects.create(
+            user=user,
+            otp=otp_code,
+            expires_at=timezone.now() + timedelta(minutes=10),
+        )
