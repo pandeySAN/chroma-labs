@@ -18,7 +18,7 @@ class ApiConstants {
   static const String webDevBaseUrl = 'http://localhost:8000';
 
   /// Production backend
-  static const String prodBaseUrl = 'https://api.cere-bro.in';
+  static const String prodBaseUrl = 'https://cere-bro.in';
 
   /// Dynamic base URL
   static String get baseUrl {
