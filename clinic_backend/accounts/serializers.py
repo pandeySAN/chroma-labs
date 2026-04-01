@@ -20,10 +20,11 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'full_name',
             'auth_provider',
+            'role',
             'profile_picture',
             'date_joined',
         ]
-        read_only_fields = ['id', 'date_joined', 'auth_provider']
+        read_only_fields = ['id', 'date_joined', 'auth_provider', 'role']
 
 
 class DoctorSerializer(serializers.ModelSerializer):
@@ -38,6 +39,9 @@ class DoctorSerializer(serializers.ModelSerializer):
             'id',
             'user',
             'specialization',
+            'experience_years',
+            'languages',
+            'consultation_fee',
             'clinic',
             'clinic_name',
         ]
@@ -55,15 +59,18 @@ class SignupSerializer(serializers.Serializer):
         min_length=6,
         style={'input_type': 'password'},
     )
+    role = serializers.ChoiceField(
+        choices=User.Role.choices,
+        default='patient',
+        required=False,
+    )
     
     def validate_identifier(self, value):
         """Check if identifier (email or mobile) already exists."""
-        # Check if it's an email
         if '@' in value:
             if User.objects.filter(email=value).exists():
                 raise serializers.ValidationError("A user with this email already exists.")
         else:
-            # It's a mobile number - store in username field
             if User.objects.filter(username=value).exists():
                 raise serializers.ValidationError("A user with this mobile number already exists.")
         return value
@@ -72,21 +79,19 @@ class SignupSerializer(serializers.Serializer):
         name = validated_data['name']
         identifier = validated_data['identifier']
         password = validated_data['password']
+        role = validated_data.get('role', 'patient')
         
-        # Split name into first and last name
         name_parts = name.strip().split(' ', 1)
         first_name = name_parts[0]
         last_name = name_parts[1] if len(name_parts) > 1 else ''
         
-        # Determine if identifier is email or mobile
         if '@' in identifier:
             email = identifier
             username = identifier.split('@')[0]
         else:
-            email = f"{identifier}@mobile.local"  # Placeholder email for mobile users
+            email = f"{identifier}@mobile.local"
             username = identifier
         
-        # Create user
         user = User.objects.create_user(
             username=username,
             email=email,
@@ -94,6 +99,7 @@ class SignupSerializer(serializers.Serializer):
             first_name=first_name,
             last_name=last_name,
             auth_provider='email',
+            role=role,
         )
         
         return user

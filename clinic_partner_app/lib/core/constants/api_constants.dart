@@ -9,7 +9,7 @@ class ApiConstants {
   // ===========================================
 
   /// Change this to false for local development
-  static const bool isProduction = true;
+  static const bool isProduction = false;
 
   /// Android emulator
   static const String androidDevBaseUrl = 'http://10.0.2.2:8000';

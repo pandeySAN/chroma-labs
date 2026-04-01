@@ -141,6 +141,10 @@ class GoogleOAuthView(APIView):
             last_name = userinfo.get('family_name', '')
             profile_picture = userinfo.get('picture', '')
             
+            role = request.data.get('role', 'patient')
+            if role not in ('doctor', 'patient'):
+                role = 'patient'
+
             user, created = User.objects.get_or_create(
                 email=email,
                 defaults={
@@ -149,6 +153,7 @@ class GoogleOAuthView(APIView):
                     'last_name': last_name,
                     'profile_picture': profile_picture,
                     'auth_provider': 'google',
+                    'role': role,
                 }
             )
             
@@ -291,12 +296,14 @@ class RegisterDoctorView(APIView):
                         }
                     )
                 
-                # Create doctor profile
                 doctor = Doctor.objects.create(
                     user=user,
                     specialization=specialization,
                     clinic=clinic,
                 )
+                if user.role != 'doctor':
+                    user.role = 'doctor'
+                    user.save(update_fields=['role'])
                 
                 return Response({
                     'message': 'Successfully registered as a doctor',

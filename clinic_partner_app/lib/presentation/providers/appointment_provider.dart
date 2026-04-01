@@ -214,6 +214,30 @@ class AppointmentProvider with ChangeNotifier {
     }
   }
 
+  /// Save a video call link (e.g. Google Meet) to the appointment
+  Future<bool> setVideoCallLink(int id, String link) async {
+    try {
+      final result = await _appointmentService.updateVideoCallLink(id, link);
+
+      if (result.success && result.data != null) {
+        final index = _appointments.indexWhere((a) => a.id == id);
+        if (index != -1) {
+          _appointments[index] = result.data!;
+          notifyListeners();
+        }
+        return true;
+      } else {
+        _errorMessage = result.error ?? 'Failed to save video link';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Error: ${e.toString()}';
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Get appointment by ID from local list
   Appointment? getAppointmentById(int id) {
     try {

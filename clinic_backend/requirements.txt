@@ -16,3 +16,6 @@ google-auth>=2.25.0
 
 # Environment variables (recommended)
 python-dotenv>=1.0.0
+
+#payment gateway
+razorpay==2.10.1

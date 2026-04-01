@@ -18,12 +18,21 @@ class User(AbstractUser):
         EMAIL = 'email', _('Email')
         GOOGLE = 'google', _('Google')
         MICROSOFT = 'microsoft', _('Microsoft')
+
+    class Role(models.TextChoices):
+        DOCTOR = 'doctor', _('Doctor')
+        PATIENT = 'patient', _('Patient')
     
     email = models.EmailField(_('email address'), unique=True)
     auth_provider = models.CharField(
         max_length=20,
         choices=AuthProvider.choices,
         default=AuthProvider.EMAIL,
+    )
+    role = models.CharField(
+        max_length=10,
+        choices=Role.choices,
+        default=Role.PATIENT,
     )
     first_name = models.CharField(_('first name'), max_length=150)
     last_name = models.CharField(_('last name'), max_length=150)
@@ -59,6 +68,14 @@ class Doctor(models.Model):
         related_name='doctor_profile',
     )
     specialization = models.CharField(max_length=100)
+    experience_years = models.PositiveIntegerField(default=0)
+    languages = models.CharField(
+        max_length=255, blank=True, default='English',
+        help_text='Comma-separated list, e.g. "English, Hindi"',
+    )
+    consultation_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+    )
     clinic = models.ForeignKey(
         'appointments.Clinic',
         on_delete=models.SET_NULL,

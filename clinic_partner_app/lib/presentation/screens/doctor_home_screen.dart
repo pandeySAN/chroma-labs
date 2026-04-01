@@ -350,6 +350,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                       onVideoCall: appointment.hasVideoCall
                           ? () => _launchVideoCall(appointment.videoCallLink!)
                           : null,
+                      onGenerateVideoCall: !appointment.hasVideoCall &&
+                              (appointment.isScheduled ||
+                                  appointment.isInProgress)
+                          ? () => _generateAndLaunchVideoCall(appointment.id)
+                          : null,
                       onStatusChange: (newStatus) async {
                         HapticFeedback.lightImpact();
                         await context.read<AppointmentProvider>()
@@ -449,6 +454,149 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     }
   }
 
+  Future<void> _generateAndLaunchVideoCall(int appointmentId) async {
+    final linkCtrl = TextEditingController();
+    String? errorText;
+
+    final savedLink = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00B8A9).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.video_call_rounded,
+                        color: Color(0xFF00B8A9), size: 24,),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Video Call'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Create a Google Meet, then paste the link here so the patient can join.',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.parse('https://meet.google.com/new');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri,
+                              mode: LaunchMode.externalApplication,);
+                        }
+                      },
+                      icon: const Text('G',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF4285F4),),),
+                      label: const Text('Open Google Meet'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFF4285F4)),
+                        foregroundColor: const Color(0xFF4285F4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: linkCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Paste Google Meet link',
+                      hintText: 'https://meet.google.com/abc-defg-hij',
+                      prefixIcon:
+                          const Icon(Icons.link_rounded, size: 20),
+                      errorText: errorText,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text('Cancel',
+                      style: TextStyle(color: Colors.grey.shade600),),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    final link = linkCtrl.text.trim();
+                    if (link.isEmpty) {
+                      setDialogState(
+                          () => errorText = 'Please paste a meeting link',);
+                      return;
+                    }
+                    if (!link.startsWith('http')) {
+                      setDialogState(
+                          () => errorText = 'Please enter a valid URL',);
+                      return;
+                    }
+                    Navigator.pop(ctx, link);
+                  },
+                  icon: const Icon(Icons.save_rounded, size: 18),
+                  label: const Text('Save & Start'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00B8A9),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12,),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    linkCtrl.dispose();
+    if (savedLink == null || !mounted) return;
+
+    final provider = context.read<AppointmentProvider>();
+    final success =
+        await provider.setVideoCallLink(appointmentId, savedLink);
+    if (!mounted) return;
+
+    if (success) {
+      _launchVideoCall(savedLink);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Failed to save link'),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _showLogoutDialog(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -517,11 +665,13 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 class _AppointmentCard extends StatelessWidget {
   final Appointment appointment;
   final VoidCallback? onVideoCall;
+  final VoidCallback? onGenerateVideoCall;
   final Function(String)? onStatusChange;
 
   const _AppointmentCard({
     required this.appointment,
     this.onVideoCall,
+    this.onGenerateVideoCall,
     this.onStatusChange,
   });
 
@@ -661,30 +811,50 @@ class _AppointmentCard extends StatelessWidget {
               ),
             ],
             
-            // Video Call Button
-            if (appointment.hasVideoCall && 
-                (appointment.isScheduled || appointment.isInProgress)) ...[
+            // Video Call Buttons
+            if ((appointment.isScheduled || appointment.isInProgress)) ...[
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: onVideoCall,
-                  icon: const Icon(Icons.video_call_rounded, size: 22),
-                  label: const Text(
-                    'Start Video Call',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              if (appointment.hasVideoCall)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onVideoCall,
+                    icon: const Icon(Icons.video_call_rounded, size: 22),
+                    label: const Text(
+                      'Join Video Call',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00B8A9),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00B8A9),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onGenerateVideoCall,
+                    icon: const Icon(Icons.videocam_rounded, size: 22),
+                    label: const Text(
+                      'Start Video Call',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF00B8A9),
+                      side: const BorderSide(color: Color(0xFF00B8A9), width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ],
         ),

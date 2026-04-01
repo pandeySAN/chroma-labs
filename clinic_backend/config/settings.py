@@ -16,8 +16,7 @@ SECRET_KEY = os.environ.get(
     'django-insecure-change-this-in-production-clinic-backend-2024'
 )
 
-# PRODUCTION SETTINGS
-DEBUG = False
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = [
     "cere-bro.in",
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
 
     'accounts.apps.AccountsConfig',
     'appointments.apps.AppointmentsConfig',
+    'payments.apps.PaymentsConfig',
 ]
 
 MIDDLEWARE = [
@@ -141,7 +141,13 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "https://cere-bro.in",
-    "https://www.cere-bro.in"
+    "https://www.cere-bro.in",
+    "http://localhost:8000",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -203,3 +209,6 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+# Razorpay
+RAZORPAY_KEY_ID     = os.environ.get('RAZORPAY_KEY_ID', '')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
